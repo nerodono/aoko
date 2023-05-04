@@ -1,0 +1,25 @@
+[package]
+name = "aoko"
+version = "0.1.0"
+edition = "2021"
+
+[profile.release]
+opt-level = 3
+lto = true
+
+[[bin]]
+name = "aoko"
+path = "bin/main.rs"
+
+[lib]
+name = "aoko"
+path = "src/lib.rs"
+
+[dependencies]
+bitflags = "2.2.1"
+bytes = "1.4.0"
+clap = { version = "4.2.7", features = ["derive"] }
+ctrlc = "3.2.5"
+eyre = "0.6.8"
+gilrs = { version = "0.10.2", features = ["wgi"], default-features = false }
+integral-enum = "3.0.1"
