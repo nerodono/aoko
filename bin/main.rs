@@ -132,12 +132,16 @@ fn main() -> eyre::Result<()> {
             );
         }
 
-        sleep(Duration::from_secs_f64(1.0 / ticks));
-
         connection.update(&net_gamepads);
-        if let Err(e) = connection.send() {
-            eprintln!("Error during send: {e}, reconnecting...");
-            connection.reconnect()?;
+
+        loop {
+            sleep(Duration::from_secs_f64(1.0 / ticks));
+            if let Err(e) = connection.send() {
+                eprintln!("Error during send: {e}, reconnecting...");
+                connection.reconnect()?;
+            } else {
+                break;
+            }
         }
     }
 
