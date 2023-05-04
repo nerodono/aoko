@@ -21,6 +21,22 @@ pub struct CliArgs {
     /// with the following formula: `[input * multiplier]`
     #[clap(long, short, default_value_t = 32767.0)]
     pub axis_multiplier: f32,
+
+    /// Invert X axis of the left stick
+    #[clap(long, short)]
+    pub invert_left_x: bool,
+
+    /// Invert Y axis of the left stick
+    #[clap(long, short)]
+    pub invert_left_y: bool,
+
+    /// Invert X axis of the right stick
+    #[clap(long, short)]
+    pub invert_right_x: bool,
+
+    /// Invert Y axis of the right stick
+    #[clap(long, short)]
+    pub invert_right_y: bool,
 }
 
 impl CliArgs {

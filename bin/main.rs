@@ -22,30 +22,29 @@ fn handle_event(
     gamepads: &mut Gamepads,
     net_gamepads: &mut [Option<Controller>; 4],
     id: GamepadId,
-    axis_multiplier: f32,
+    left_multiplier: (f32, f32),
+    right_multiplier: (f32, f32),
 ) {
     match event {
         EventType::AxisChanged(axis, change, ..) => {
             let net_id = gamepads.index_of(id);
-            let mut m_ref = net_gamepads[net_id].as_mut().unwrap();
-
-            let change_i32 = (change * axis_multiplier) as i32;
+            let m_ref = net_gamepads[net_id].as_mut().unwrap();
 
             match axis {
                 Axis::LeftStickX => {
-                    m_ref.joy_left.0 = change_i32;
+                    m_ref.joy_left.0 = (change * left_multiplier.0) as i32;
                 }
 
                 Axis::LeftStickY => {
-                    m_ref.joy_left.1 = change_i32;
+                    m_ref.joy_left.1 = (change * left_multiplier.1) as i32;
                 }
 
                 Axis::RightStickX => {
-                    m_ref.joy_right.0 = change_i32;
+                    m_ref.joy_right.0 = (change * right_multiplier.0) as i32;
                 }
 
                 Axis::RightStickY => {
-                    m_ref.joy_right.1 = change_i32;
+                    m_ref.joy_right.1 = (change * right_multiplier.1) as i32;
                 }
 
                 _ => {}
@@ -104,6 +103,23 @@ fn main() -> eyre::Result<()> {
         ctrlc_flag.store(false, Ordering::Release);
     })?;
 
+    let mut left_multiplier = (args.axis_multiplier, args.axis_multiplier);
+    let mut right_multiplier = left_multiplier;
+
+    if args.invert_left_x {
+        left_multiplier.0 *= -1.0;
+    }
+    if args.invert_left_y {
+        left_multiplier.1 *= -1.0;
+    }
+
+    if args.invert_right_x {
+        right_multiplier.0 *= -1.0;
+    }
+    if args.invert_right_y {
+        right_multiplier.1 *= -1.0;
+    }
+
     while running.load(Ordering::Acquire) {
         while let Some(Event { id, event, .. }) = gilrs.next_event() {
             handle_event(
@@ -111,7 +127,8 @@ fn main() -> eyre::Result<()> {
                 &mut gamepads,
                 &mut net_gamepads,
                 id,
-                args.axis_multiplier,
+                left_multiplier,
+                right_multiplier,
             );
         }
 
