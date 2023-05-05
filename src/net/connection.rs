@@ -40,10 +40,10 @@ impl Connection {
             buf_ref.put_u16_le(pad.type_ as u16);
             buf_ref.put_u64_le(pad.keys.bits());
 
-            buf_ref.put_i32_le(pad.joy_left.0);
-            buf_ref.put_i32_le(pad.joy_left.1);
-            buf_ref.put_i32_le(pad.joy_right.0);
-            buf_ref.put_i32_le(pad.joy_right.1);
+            buf_ref.put_i32_le(pad.joy_left.x);
+            buf_ref.put_i32_le(pad.joy_left.y);
+            buf_ref.put_i32_le(pad.joy_right.x);
+            buf_ref.put_i32_le(pad.joy_right.y);
         }
     }
 

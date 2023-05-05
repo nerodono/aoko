@@ -3,6 +3,8 @@ use clap::ValueEnum;
 use gilrs::Button;
 use integral_enum::integral_enum;
 
+use crate::gamepads::Vec2;
+
 bitflags! {
     #[derive(Debug, Clone, Copy)]
     pub struct Keys: u64 {
@@ -43,8 +45,8 @@ pub struct Controller {
     pub type_: ControllerType,
     pub keys: Keys,
 
-    pub joy_left: (i32, i32),
-    pub joy_right: (i32, i32),
+    pub joy_left: Vec2<i32>,
+    pub joy_right: Vec2<i32>,
 }
 
 impl From<Button> for Keys {

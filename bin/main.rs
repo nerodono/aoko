@@ -9,13 +9,26 @@ use std::{
 
 use aoko::{
     cli::CliArgs,
-    gamepads::Gamepads,
+    gamepads::{Gamepads, Vec2},
     net::{
         connection::Connection,
         controller::{Controller, ControllerType, Keys},
     },
 };
 use gilrs::{Axis, Event, EventType, GamepadId, Gilrs};
+
+fn clamp_circle(mut vec: Vec2) -> Vec2 {
+    let line_length = (vec.x.powi(2) + vec.y.powi(2)).sqrt();
+    if line_length > 1.0 {
+        let sin = vec.y / line_length;
+        let cos = vec.x / line_length;
+
+        vec.x = cos;
+        vec.y = sin;
+    }
+
+    vec
+}
 
 fn handle_event(
     event: EventType,
@@ -27,24 +40,30 @@ fn handle_event(
 ) {
     match event {
         EventType::AxisChanged(axis, change, ..) => {
-            let net_id = gamepads.index_of(id);
-            let m_ref = net_gamepads[net_id].as_mut().unwrap();
+            let gs = gamepads.index_of(id);
+            let m_ref = net_gamepads[gs.index].as_mut().unwrap();
+
+            *match axis {
+                Axis::LeftStickX => &mut gs.axis.left.x,
+
+                Axis::LeftStickY => &mut gs.axis.left.y,
+
+                Axis::RightStickX => &mut gs.axis.right.x,
+
+                Axis::RightStickY => &mut gs.axis.right.y,
+
+                _ => return,
+            } = change;
 
             match axis {
-                Axis::LeftStickX => {
-                    m_ref.joy_left.0 = (change * left_multiplier.0) as i32;
+                Axis::LeftStickX | Axis::LeftStickY => {
+                    m_ref.joy_left = clamp_circle(gs.axis.left)
+                        .into_i32_multiplied(left_multiplier.0, left_multiplier.1);
                 }
 
-                Axis::LeftStickY => {
-                    m_ref.joy_left.1 = (change * left_multiplier.1) as i32;
-                }
-
-                Axis::RightStickX => {
-                    m_ref.joy_right.0 = (change * right_multiplier.0) as i32;
-                }
-
-                Axis::RightStickY => {
-                    m_ref.joy_right.1 = (change * right_multiplier.1) as i32;
+                Axis::RightStickX | Axis::RightStickY => {
+                    m_ref.joy_right = clamp_circle(gs.axis.right)
+                        .into_i32_multiplied(right_multiplier.0, right_multiplier.1);
                 }
 
                 _ => {}
@@ -53,7 +72,7 @@ fn handle_event(
 
         e @ (EventType::ButtonReleased(button, ..) | EventType::ButtonPressed(button, ..)) => {
             let released = matches!(e, EventType::ButtonReleased(..));
-            let net_id = gamepads.index_of(id);
+            let net_id = gamepads.index_of(id).index;
             let m_ref = net_gamepads[net_id].as_mut().unwrap();
 
             let flags = Keys::from(button);
@@ -66,18 +85,18 @@ fn handle_event(
         }
 
         EventType::Connected => {
-            let numeric_id = gamepads.insert(id);
+            let numeric_id = gamepads.insert(id).index;
             println!(">> Connected {id} ({numeric_id})");
             net_gamepads[numeric_id] = Some(Controller {
                 type_: ControllerType::ProController,
                 keys: Keys::empty(),
-                joy_left: (0, 0),
-                joy_right: (0, 0),
+                joy_left: Vec2::default(),
+                joy_right: Vec2::default(),
             });
         }
 
         EventType::Disconnected => {
-            let net_id = gamepads.index_of(id);
+            let net_id = gamepads.index_of(id).index;
             net_gamepads[net_id] = None;
             gamepads.remove(id);
 
@@ -103,7 +122,9 @@ fn main() -> eyre::Result<()> {
         ctrlc_flag.store(false, Ordering::Release);
     })?;
 
-    let mut left_multiplier = (args.axis_multiplier, args.axis_multiplier);
+    let common = args.axis_multiplier;
+
+    let mut left_multiplier = (common, common);
     let mut right_multiplier = left_multiplier;
 
     if args.invert_left_x {
