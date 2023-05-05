@@ -114,6 +114,16 @@ fn main() -> eyre::Result<()> {
     let mut net_gamepads: [Option<Controller>; 4] = [None, None, None, None];
     let mut gamepads = Gamepads::new();
 
+    for (id, gamepad) in gilrs.gamepads() {
+        let name = gamepad.name();
+        let state = gamepads.insert(id);
+
+        println!(
+            "- available gamepad {}, assigned id at start: {}",
+            name, state.index
+        );
+    }
+
     let ticks = args.ticks;
     let running = Arc::new(AtomicBool::new(true));
 
