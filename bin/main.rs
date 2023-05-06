@@ -12,7 +12,7 @@ use aoko::{
     gamepads::{Gamepads, Vec2},
     net::{
         connection::Connection,
-        controller::{Controller, ControllerType, Keys},
+        controller::{Controller, Keys},
     },
 };
 use gilrs::{Axis, Event, EventType, GamepadId, Gilrs};
