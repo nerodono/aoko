@@ -45,11 +45,8 @@ fn handle_event(
 
             *match axis {
                 Axis::LeftStickX => &mut gs.axis.left.x,
-
                 Axis::LeftStickY => &mut gs.axis.left.y,
-
                 Axis::RightStickX => &mut gs.axis.right.x,
-
                 Axis::RightStickY => &mut gs.axis.right.y,
 
                 _ => return,
@@ -87,12 +84,7 @@ fn handle_event(
         EventType::Connected => {
             let numeric_id = gamepads.insert(id).index;
             println!(">> Connected {id} ({numeric_id})");
-            net_gamepads[numeric_id] = Some(Controller {
-                type_: ControllerType::ProController,
-                keys: Keys::empty(),
-                joy_left: Vec2::default(),
-                joy_right: Vec2::default(),
-            });
+            net_gamepads[numeric_id] = Some(Controller::default());
         }
 
         EventType::Disconnected => {
@@ -117,7 +109,7 @@ fn main() -> eyre::Result<()> {
     for (id, gamepad) in gilrs.gamepads() {
         let name = gamepad.name();
         let state = gamepads.insert(id);
-
+        net_gamepads[state.index] = Some(Controller::default());
         println!(
             "- available gamepad {}, assigned id at start: {}",
             name, state.index

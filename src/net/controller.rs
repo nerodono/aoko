@@ -6,7 +6,7 @@ use integral_enum::integral_enum;
 use crate::gamepads::Vec2;
 
 bitflags! {
-    #[derive(Debug, Clone, Copy)]
+    #[derive(Default, Debug, Clone, Copy)]
     pub struct Keys: u64 {
         const A           = 1 << 0;
         const B           = 1 << 1;
@@ -33,14 +33,16 @@ bitflags! {
 }
 
 #[integral_enum]
-#[derive(ValueEnum)]
+#[derive(Default, ValueEnum)]
 pub enum ControllerType {
+    #[default]
     ProController = 1,
+
     JoyConL = 2,
     JoyConR = 3,
 }
 
-#[derive(Debug)]
+#[derive(Default, Debug)]
 pub struct Controller {
     pub type_: ControllerType,
     pub keys: Keys,
